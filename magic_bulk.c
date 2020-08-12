@@ -27,7 +27,7 @@ void process(const char *filename) {
     const char *magicInfo = magic_file(magic, filename);
     FILE *fp = good_magic_info(magicInfo) ? goodFp : badFp;
 
-    if (!fprintf(fp, "%s\n", filename)) {
+    if (!fprintf(fp, "%s\t%s\n", filename, magicInfo == NULL ? 'null' : magicInfo)) {
         fprintf(stderr, "failed to write to file!");
         return;
     }
