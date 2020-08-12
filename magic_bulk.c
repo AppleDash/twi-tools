@@ -6,6 +6,7 @@
 #include <stdbool.h>
 
 #define FLUSH 1 // whether or not to flush the files after each line written
+#define STATS 1
 #define MAX_FILE_LENGTH 1024 // seems reasonable, linux uses 4096 but that's like, a lot, dude.
 
 magic_t magic; // magic_t is a pointer type
@@ -27,18 +28,22 @@ void process(const char *filename) {
     const char *magicInfo = magic_file(magic, filename);
     FILE *fp = good_magic_info(magicInfo) ? goodFp : badFp;
 
-    if (!fprintf(fp, "%s\t%s\n", filename, magicInfo == NULL ? 'null' : magicInfo)) {
+    if (!fprintf(fp, "%s\t%s\n", filename, magicInfo == NULL ? "null" : magicInfo)) {
         fprintf(stderr, "failed to write to file!");
         return;
     }
 
     
     #if FLUSH
-        fflush(fp);
+    fflush(fp);
     #endif
 }
 
 int main(int argc, char *argv[]) {
+    #if STATS
+    int processed = 0;
+    #endif
+
     int retval = 0;
     char buf[MAX_FILE_LENGTH + 1] = { 0 };
 
@@ -86,6 +91,14 @@ int main(int argc, char *argv[]) {
             process(buf);
         }
 
+        #if STATS
+        processed++;
+
+        if ((processed % 100) == 0) {
+            printf("%d ", processed);
+            fflush(stdout);
+        }
+        #endif
     }
 
     if (ferror(stdin)) {
@@ -93,6 +106,10 @@ int main(int argc, char *argv[]) {
 
         retval = 1;
     }
+
+    #if STATS
+    printf("total: %d\n", processed);
+    #endif
 
 
     magic_close(magic);
